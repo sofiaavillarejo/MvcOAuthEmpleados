@@ -56,5 +56,26 @@ namespace MvcOAuthEmpleados.Controllers
             List<Empleado> empleados = await this.service.GetCompislAsync();
             return View(empleados);
         }
+
+        public async Task<IActionResult> EmpleadosOficios()
+        {
+            List<string> oficios = await this.service.GetOficiosAsync();
+            ViewData["OFICIOS"] = oficios;
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> EmpleadosOficios(int? incremento, List<string> oficio, string accion)
+        {
+            List<string> oficios = await this.service.GetOficiosAsync();
+            ViewData["OFICIOS"] = oficios;
+            if(accion.ToLower() == "update")
+            {
+                await this.service.UpdateEmpleadosOficioAsync(incremento.Value, oficio);
+            }
+            //tanto si se incrementa el salario como sino, se muestran los empleados
+            List<Empleado> empleados = await this.service.GetEmpleadosOficiosAsync(oficio);
+            return View(empleados);
+        }
     }
 }

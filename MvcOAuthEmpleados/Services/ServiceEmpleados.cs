@@ -3,6 +3,7 @@ using MvcOAuthEmpleados.Models;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 using System.Text;
+using NuGet.Common;
 
 namespace MvcOAuthEmpleados.Services
 {
@@ -125,6 +126,47 @@ namespace MvcOAuthEmpleados.Services
             string request = "api/empleados/compis";
             List<Empleado> empleados = await this.CallApiAsync<List<Empleado>>(request, token);
             return empleados;
+        }
+
+        public async Task<List<string>> GetOficiosAsync()
+        {
+            string request = "api/empleados/oficios";
+            List<string> oficios = await this.CallApiAsync<List<string>>(request);
+            return oficios;
+        }
+
+        //METODO PARA DEVOLVER ESTO -> oficio=ANALISTA&oficio=DIRECTOR
+        private string TransformarColleccionToQuery(List<string> collection)
+        {
+            string result = "";
+            foreach(string elem in collection)
+            {
+                result += "oficio=" + elem + "&";
+            }
+            //quitamos el ultimo &
+            result = result.TrimEnd('&');
+            return result;
+        }
+
+        public async Task<List<Empleado>> GetEmpleadosOficiosAsync(List<string> oficios)
+        {
+            string request = "api/empleados/empleadosoficios";
+            string data = this.TransformarColleccionToQuery(oficios);
+            List<Empleado> empleados = await this.CallApiAsync<List<Empleado>>(request + "?" + data);
+            return empleados;
+        }
+
+        public async Task UpdateEmpleadosOficioAsync(int incremento, List<string> oficios)
+        {
+            string request = "api/empleados/incrementarsalarios/" + incremento;
+            string data = this.TransformarColleccionToQuery(oficios);
+            using (HttpClient client = new HttpClient())
+            {
+                client.BaseAddress = new Uri(this.UrlApi);
+                client.DefaultRequestHeaders.Clear();
+                client.DefaultRequestHeaders.Accept.Add(this.header);
+                HttpResponseMessage response = await client.PutAsync(request + "?" + data, null);
+            }
         }
     }
 }
